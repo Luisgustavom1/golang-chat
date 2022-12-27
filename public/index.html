@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Go Chat!</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+ <div>
+   <div>
+     <h1>Golang Chat!</h1>
+     <h3>Concurrency / WebSocket / Redis</h3>
+   </div>
+   <form id="chat-form">
+      <input
+        type="text"
+        required
+        name="username"
+        placeholder="Digite seu nome"
+      />
+      <input
+        type="text"
+        required
+        name="text"
+        placeholder="Escreva seu texto"
+      />
+      <button type="submit">Enviar</button>
+   </form>
+   <section id="chat-container">
+
+   </section>
+  </div>
+</body>
+<script type="text/javascript">
+  const webSocket = new WebSocket("ws://" + window.location.host + "/websocket")
+  const chatContainer = document.querySelector("#chat-container")
+  const form = document.querySelector("#chat-form") 
+
+  webSocket.addEventListener("message", (e) => {
+    const chatMessageData = JSON.parse(e.data);
+    console.log(chatMessageData);
+    const chatContent = `
+      <p>
+        <strong>${chatMessageData.username}</strong>: ${chatMessageData.text}
+      </p>
+    `;
+    chatContainer.innerHTML += chatContent;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  })
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    const username = formData.get("username")
+    const text = formData.get("text")
+    webSocket.send(
+      JSON.stringify({
+        username,
+        text
+      })
+    )
+
+    formData.set("text", "")
+  })
+</script>
+</html>
